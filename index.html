@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Angular read-through guide</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="top">
+  <h1>Angular read-through guide</h1>
+  <span class="sub">for the angular-kanban project · Angular 22.2.2</span>
+  <div class="meter" aria-live="polite">
+    <span id="meterText">0 of 9 chapters</span>
+    <div class="bar" role="progressbar" aria-label="Chapters read" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="meterBar"></i></div>
+    <button class="iconbtn" id="themeBtn" type="button" aria-label="Toggle dark mode">Theme</button>
+  </div>
+</header>
+
+<div class="layout">
+<nav class="side" aria-label="Chapters">
+  <ol id="toc">
+    <li><a href="#intro" data-ch="intro">How to use this</a></li>
+    <li><a href="#trace" data-ch="trace">Trace a page load</a></li>
+    <li><a href="#files" data-ch="files">Tour of the files</a></li>
+    <li><a href="#where" data-ch="where">Where things go</a></li>
+    <li><a href="#zoneless" data-ch="zoneless">How it re-renders</a></li>
+    <li><a href="#quiz" data-ch="quiz">Questions and answers</a></li>
+    <li><a href="#m0" data-ch="m0">Milestone 0 review</a></li>
+    <li><a href="#gloss" data-ch="gloss">Glossary</a></li>
+    <li><a href="#cheat" data-ch="cheat">Cheat sheet</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- 1 INTRO -->
+<section class="chapter" id="intro" data-ch="intro">
+  <div class="kicker">Chapter 1</div>
+  <h2>How to use this guide</h2>
+  <p class="lead">A slow read-through of the Angular project you just generated, built from your actual files, with the review questions from step 0.3 and their answers.</p>
+  <ul>
+    <li><strong>Read a chapter, then tick it.</strong> Your progress is saved in this browser only.</li>
+    <li><strong>In the questions chapter, write your own answer first.</strong> Then reveal the model answer and mark yourself "Got it" or "Review again". Predicting before checking is how this sticks.</li>
+    <li><strong>Everything here refers to real files</strong> in <code>~/code-projects/angular-kanban</code>. Open them beside this page.</li>
+  </ul>
+  <div class="callout warn"><strong>Two things I verified, so you can trust them</strong>
+    The project has <em>no</em> <code>zone.js</code> (it is zoneless), and TypeScript <em>strict</em> mode is effectively on even though <code>tsconfig.json</code> never says <code>"strict": true</code>. I proved the second one by adding <code>const s: string | null = null; s.length;</code> to <code>app.ts</code>: the build failed with <code>TS18047: 's' is possibly 'null'</code>. I reverted the edit afterwards.
+  </div>
+  <div class="donebar"><label><input type="checkbox" data-done="intro"> I have read this chapter</label></div>
+</section>
+
+<!-- 2 TRACE -->
+<section class="chapter" id="trace" data-ch="trace">
+  <div class="kicker">Chapter 2 · Question 1</div>
+  <h2>Trace a page load, file by file</h2>
+  <p class="lead">What happens between typing <code>localhost:4200</code> and seeing "Hello, angular-kanban"? Step through the six hops. The highlighted lines are the ones doing the work.</p>
+  <div class="stepper">
+    <ol class="hops" id="hops" aria-label="Hops"></ol>
+    <div class="hopview">
+      <span class="filetag" id="hopFile"></span>
+      <pre class="code" id="hopCode" tabindex="0"></pre>
+      <p class="what" id="hopWhat"></p>
+      <div class="hopnav">
+        <button class="btn" id="hopPrev" type="button">← Back</button>
+        <button class="btn primary" id="hopNext" type="button">Next hop →</button>
+      </div>
+    </div>
+  </div>
+  <div class="callout good"><strong>The one-sentence version</strong>
+    <code>index.html</code> contains an empty <code>&lt;app-root&gt;</code>; the build adds a script that runs <code>main.ts</code>; <code>main.ts</code> calls <code>bootstrapApplication(App, appConfig)</code>; Angular builds its services from <code>appConfig</code>, finds <code>&lt;app-root&gt;</code> by the selector on <code>App</code>, and renders <code>app.html</code> inside it.
+  </div>
+  <div class="donebar"><label><input type="checkbox" data-done="trace"> I have read this chapter</label></div>
+</section>
+
+<!-- 3 FILES -->
+<section class="chapter" id="files" data-ch="files">
+  <div class="kicker">Chapter 3 · Question 4</div>
+  <h2>Tour of the files</h2>
+  <p class="lead">One sentence for every file, plus what to look for when you open it. Filter by kind.</p>
+  <div class="chips" role="group" aria-label="Filter files" id="fileChips"></div>
+  <div class="files" id="fileGrid"></div>
+  <div class="donebar"><label><input type="checkbox" data-done="files"> I have read this chapter</label></div>
+</section>
+
+<!-- 4 WHERE -->
+<section class="chapter" id="where" data-ch="where">
+  <div class="kicker">Chapter 4 · Question 2</div>
+  <h2>Where would things go?</h2>
+  <p class="lead">Two questions you will answer for real in Milestones 2, 3 and 6. Here is the map.</p>
+
+  <h3>A global service (one shared instance)</h3>
+  <p>Most of the time, <strong>you do not register it anywhere</strong>. Put <code>@Injectable({ providedIn: 'root' })</code> on the class, and Angular creates a single shared instance the first time something asks for it with <code>inject()</code>. That is what you will do for the board store in step 2.1.</p>
+  <p>You register something explicitly in <code>appConfig.providers</code> (<code>src/app/app.config.ts</code>) when it is <em>not</em> <code>providedIn: 'root'</code>:</p>
+  <ul>
+    <li><strong>Provider functions</strong> that switch on a capability: <code>provideHttpClient()</code> (step 3.4), <code>provideRouter(routes)</code> (step 6.1).</li>
+    <li><strong>Configuration values</strong> through an <code>InjectionToken</code>.</li>
+    <li><strong>Choosing an implementation</strong>, for example a fake API in tests and a real one in production.</li>
+  </ul>
+  <pre class="code" id="whereCfg"></pre>
+  <p style="margin-top:14px">Your <code>appConfig</code> already has one provider, <code>provideBrowserGlobalErrorListeners()</code>. More on why it matters in chapter 5.</p>
+
+  <h3>A route</h3>
+  <p>Routes are plain data: an array of <code>Routes</code>, conventionally in a new file <code>src/app/app.routes.ts</code>. Three things connect them to the app:</p>
+  <ol class="plain">
+    <li>Export the array: <code>export const routes: Routes = [ ... ]</code></li>
+    <li>Add <code>provideRouter(routes)</code> to <code>appConfig.providers</code>.</li>
+    <li>Put <code>&lt;router-outlet /&gt;</code> in a template (the root component imports <code>RouterOutlet</code>). The outlet is where the matched component appears.</li>
+  </ol>
+  <div class="callout"><strong>Right now there are no routes</strong>
+    You created the project with <code>--routing=false</code>, so there is no <code>app.routes.ts</code> and no <code>provideRouter</code>. Notice that <code>@angular/router</code> is still installed (see <code>package.json</code>). The package is there; the feature is not switched on. You do this in step 6.1.
+  </div>
+  <div class="donebar"><label><input type="checkbox" data-done="where"> I have read this chapter</label></div>
+</section>
+
+<!-- 5 ZONELESS -->
+<section class="chapter" id="zoneless" data-ch="zoneless">
+  <div class="kicker">Chapter 5 · Question 3</div>
+  <h2>How does Angular know when to re-render?</h2>
+  <p class="lead">There is no <code>zone.js</code> in your <code>package.json</code>. Older Angular used it to notice that <em>anything</em> asynchronous happened (a click, a timer, a network response) and then checked the whole tree. Your app does not do that.</p>
+
+  <h3>Angular now waits to be told</h3>
+  <p>In a zoneless app, a re-render is scheduled when something <strong>explicitly signals</strong> a change. The main signals:</p>
+  <table class="cheat">
+    <thead><tr><th>Trigger</th><th>Example in your project</th></tr></thead>
+    <tbody>
+      <tr><td>A <strong>signal read by a template</strong> changes</td><td><code>app.html</code> reads <code>title()</code>. Calling <code>title.set('x')</code> updates that text, and only that.</td></tr>
+      <tr><td>A <strong>template event listener</strong> runs</td><td><code>(click)="..."</code> on a button</td></tr>
+      <tr><td><code>ChangeDetectorRef.markForCheck()</code> is called</td><td>The <code>async</code> pipe does this for you when an observable emits</td></tr>
+      <tr><td>An input is set on a component</td><td>A parent binding changes a child's <code>input()</code></td></tr>
+      <tr><td>A view is attached or removed</td><td><code>@if</code> and <code>@for</code> adding or removing content</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn"><strong>What does <em>not</em> trigger a render</strong>
+    Changing an ordinary class field inside a <code>setTimeout</code>, a promise, a <code>fetch</code> callback or an RxJS <code>subscribe</code>. Nothing tells Angular, so the screen stays stale. This is why this project keeps its state in <strong>signals</strong>, and why Milestone 2 starts there.
+  </div>
+
+  <h3>Try it (5 minutes, then revert with <code>git restore</code>)</h3>
+  <ol class="plain">
+    <li>In <code>app.ts</code>, add to the class: <code>constructor() { setTimeout(() =&gt; this.title.set('changed'), 2000); }</code>. <strong>Expected:</strong> after two seconds the heading changes to "Hello, changed", with no other code.</li>
+    <li>Revert. Now add a plain field <code>protected name = 'a';</code>, show <code>{{ name }}</code> in the template, and change it in a <code>setTimeout</code>. <strong>Expected:</strong> the page does <em>not</em> update.</li>
+    <li>If either result differs from what I wrote, that is a great thing to bring to your review.</li>
+  </ol>
+
+  <h3>Why <code>provideBrowserGlobalErrorListeners()</code> is in your config</h3>
+  <p>It forwards uncaught browser errors (<code>window</code> <code>error</code> and unhandled promise rejections) to Angular's <code>ErrorHandler</code>. Zone.js used to be what noticed those errors for Angular. Without zones, this provider is how they still get reported.</p>
+  <div class="donebar"><label><input type="checkbox" data-done="zoneless"> I have read this chapter</label></div>
+</section>
+
+<!-- 6 QUIZ -->
+<section class="chapter" id="quiz" data-ch="quiz">
+  <div class="kicker">Chapter 6 · Step 0.3 review</div>
+  <h2>Questions and answers</h2>
+  <p class="lead">The four questions from your step 0.3 review. Write your own answer first (it is saved in this browser), then reveal the model answer and rate yourself honestly.</p>
+  <p class="score" id="quizScore">Not started.</p>
+  <div id="quizList"></div>
+  <div class="donebar"><label><input type="checkbox" data-done="quiz"> I have read this chapter</label></div>
+</section>
+
+<!-- 7 M0 -->
+<section class="chapter" id="m0" data-ch="m0">
+  <div class="kicker">Chapter 7 · Bonus</div>
+  <h2>Milestone 0 review questions</h2>
+  <p class="lead">The "Stop and review" questions from steps 0.1, 0.2, 0.4, 0.5 and 0.6, with answers drawn from what actually happened when you set up this project. Step 0.3 is chapter 6. Step 0.7 asks what <em>you</em> hope to understand, so it has no model answer.</p>
+  <p class="score" id="m0Score">Not started.</p>
+  <div id="m0List"></div>
+  <div class="donebar"><label><input type="checkbox" data-done="m0"> I have read this chapter</label></div>
+</section>
+
+<!-- 8 GLOSSARY -->
+<section class="chapter" id="gloss" data-ch="gloss">
+  <div class="kicker">Chapter 8</div>
+  <h2>Glossary</h2>
+  <input class="gsearch" id="gsearch" type="search" placeholder="Search terms…" aria-label="Search the glossary">
+  <dl class="gloss" id="glossList"></dl>
+  <div class="donebar"><label><input type="checkbox" data-done="gloss"> I have read this chapter</label></div>
+</section>
+
+<!-- 9 CHEAT -->
+<section class="chapter" id="cheat" data-ch="cheat">
+  <div class="kicker">Chapter 9</div>
+  <h2>Cheat sheet</h2>
+  <p class="lead">Commands for this project. Use Node 24.21.0 (<code>nvm use 24</code>).</p>
+  <table class="cheat">
+    <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>npm start</code> or <code>ng serve</code></td><td>Dev server at <code>localhost:4200</code> with live reload (uses the <em>development</em> configuration).</td></tr>
+      <tr><td><code>ng build</code></td><td>Production build into <code>dist/</code> (the default configuration). Applies the size budgets.</td></tr>
+      <tr><td><code>npm run watch</code></td><td>Rebuilds on change in the development configuration.</td></tr>
+      <tr><td><code>ng test</code></td><td>Runs the unit tests with Vitest.</td></tr>
+      <tr><td><code>ng generate component card</code></td><td>Creates a standalone component. Your style default is SCSS.</td></tr>
+      <tr><td><code>ng version</code></td><td>Prints the CLI, Angular and Node versions. Paste it into your notes.</td></tr>
+      <tr><td><code>git log --oneline</code></td><td>Your review trail: one commit per step.</td></tr>
+    </tbody>
+  </table>
+  <div class="donebar"><label><input type="checkbox" data-done="cheat"> I have read this chapter</label></div>
+</section>
+
+</main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
